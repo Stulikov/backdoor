@@ -5,6 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "forever": "^0.15.3",
+    "querystring": "^0.2.0",
     "request-ip": "^2.0.2"
   },
   "devDependencies": {},

@@ -1,6 +1,7 @@
 var http = require("http");
 var url = require("url");
 var fs = require("fs");
+var qs = require('querystring');
 const requestIp = require('request-ip');
 
 var port = process.env.PORT || 8081;
@@ -15,8 +16,18 @@ http.createServer(function (request, response) {
 
 	// var query = url.parse(request.url,true).query;
 	// response.end(request.url);
-	response.end('L7qoNain1Tltuu2nKZPQDAnVRXcUDiysuw4QpCAYvbQpI4Zetr5V');
-
+	if(request.method=='POST') {
+        var body='';
+        request.on('data', function (data) {
+            body +=data;
+        });
+        request.on('end',function(){
+            var obj = JSON.parse(body);
+            console.log(obj);
+            console.log(obj.challenge);
+			response.end(obj.challenge);
+        });
+    }
 
 	var IP = requestIp.getClientIp(request);
 	var time = (new Date).toLocaleTimeString();
