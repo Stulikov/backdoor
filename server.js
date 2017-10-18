@@ -1,10 +1,9 @@
 var http = require("http");
 var url = require("url");
 var fs = require("fs");
-var util = require("util");
 const requestIp = require('request-ip');
 
-var port = 8081;
+var port = process.env.PORT || 8081;
 var logfile = "./log.txt";
 
 http.createServer(function (request, response) {
