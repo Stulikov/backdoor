@@ -18,13 +18,14 @@ http.createServer(function (request, response) {
 
 	var IP = requestIp.getClientIp(request);
 	var time = (new Date).toLocaleTimeString();
+	console.log(IP + ": " + time + ": " + request.url);
 	// Writing request to the log
-	fs.open("log", "a", 0666, function(err, file_handle) {
-		if (!err) {
-			fs.write(file_handle, IP + ": " + time + ": " + request.url + "\n\r", null, 'UTF8', function(err, written) {});
-		}
-		fs.close(file_handle);
-	});
+	// fs.open("log", "a", 0666, function(err, file_handle) {
+	// 	if (!err) {
+	// 		fs.write(file_handle, IP + ": " + time + ": " + request.url + "\n\r", null, 'UTF8', function(err, written) {});
+	// 	}
+	// 	fs.close(file_handle);
+	// });
 }).listen(port);
 
 // Console will print the message
