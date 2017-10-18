@@ -1,0 +1,25 @@
+{
+  "name": "doorway",
+  "version": "1.0.0",
+  "description": "Test app to make a slackbot able to open office door.",
+  "main": "server.js",
+  "dependencies": {
+    "forever": "^0.15.3",
+    "request-ip": "^2.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stulikov/doorway.git"
+  },
+  "author": "Alexey Stulikov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Stulikov/doorway/issues"
+  },
+  "homepage": "https://github.com/Stulikov/doorway#readme"
+}
