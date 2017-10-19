@@ -11,23 +11,24 @@ http.createServer(function (request, response) {
 	// Send the HTTP header 
 	// HTTP Status: 200 : OK
 	// Content Type: text/plain
-	response.writeHead(200, {'Content-Type': 'application/x-www-form-urlencoded'});
+	// response.writeHead(200, {'Content-Type': 'application/x-www-form-urlencoded'});
+	response.writeHead(200, {'Content-Type': 'text/plain'});
 	
 
 	// var query = url.parse(request.url,true).query;
-	// response.end(request.url);
-	if(request.method=='POST') {
-        var body='';
-        request.on('data', function (data) {
-            body +=data;
-        });
-        request.on('end',function(){
-            var obj = JSON.parse(body);
-            console.log(obj);
-            console.log(obj.challenge);
-			response.end(obj.challenge);
-        });
-    }
+	response.end(request.url);
+	// if(request.method=='POST') {
+	// var body='';
+	// 	request.on('data', function (data) {
+	// 		body +=data;
+	// 	});
+	// 		request.on('end',function(){
+	// 		var obj = JSON.parse(body);
+	// 		console.log(obj);
+	// 		console.log(obj.challenge);
+	// 		response.end(obj.challenge);
+	// 	});
+	// }
 
 	var IP = requestIp.getClientIp(request);
 	var time = (new Date).toLocaleTimeString();
