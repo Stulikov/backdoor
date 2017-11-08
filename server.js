@@ -104,5 +104,5 @@ http.createServer(function (request, response) {
 }).listen(port);
 
 // Console will print the message
-console.log('Server running at port ' + port);
+console.log('Server running at port ' + port + '; Token: ' + ethalon_token + ' Team ID: ' + ethalon_team_id + '.');
 
