@@ -5,15 +5,16 @@ var qs = require('querystring');
 var SerialPort = require('serialport');
 
 const requestIp = require('request-ip');
-const ethalon_token = process.env.ETHALON_TOKEN || "TgYgtt822NeQaqLQ9XQWtFhI";
-const ethalon_team_id = process.env.ETHALON_TEAM_ID || "T7J3M65J4";
+const ethalon_token = process.env.BACKDOOR_ETHALON_TOKEN || "TgYgtt822NeQaqLQ9XQWtFhI";
+const ethalon_team_id = process.env.BACKDOOR_ETHALON_TEAM_ID || "T7J3M65J4";
 const debug = true;
 
-var port = process.env.PORT || 8081;
+var port = process.env.BACKDOOR_PORT || 8081;
+var serport = process.env.BACKDOOR_SERIALPORT || '/dev/tty.SLAB_USBtoUART';
 var logfile = "./log.txt";
 
 var inputString = "";
-var sport = new SerialPort('/dev/tty.SLAB_USBtoUART', {
+var sport = new SerialPort(serport, {
 	baudRate: 9600
 });
 
