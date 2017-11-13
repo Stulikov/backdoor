@@ -32,60 +32,64 @@ function gpio_init () {
 }
 gpio_init();
 
-function add_user(user_id, user_name) {
+function add_user(user_id, user_name, callback) {
 	users.findOne({userid: user_id}).then(function(u){
 		if(u) {
 			if(u.access) {
-				return [false, "User already exist, access denied."];
+				callback([false, "User already exist, access denied."]);
 			} else {
-				return [false, "User already exist, access allowed."];
+				callback([false, "User already exist, access allowed."]);
 			}
 		} else {
 			users.insert({ userid: user_id, username: user_name, access: false}).then(function(au){
 				console.log("Added user: " + au);
+				callback([true, "Added user: " + au]);
 			});
 		}
 	});
 }
 
-function access_allowed(user_id) {
-	users.findOne({userid: user_id}).then(function(u){
+function access_allowed(data, db_callback) {
+	var result = 0;
+	if (data.token == ethalon_token && data.team_id == ethalon_team_id) {
+		result = 1;
+	}
+	users.findOne({userid: data.user_id}).then(function(u){
 		if(u) {
 			if(u.access) {
-				return true;
-			} else {
-				return false;
+				result = 2;
 			}
-		} else {
-			return false;
 		}
+		db_callback(result);
 	});
 }
 
-function process_request(data, IP) {
-	if (data.token == ethalon_token && data.team_id == ethalon_team_id && access_allowed(data.user_id)) {
-		log_opener("IP: " + IP + " user_id: " + data.user_id + "; parsed command: " + data.command + "; auth result: authorized; request.url: " + request.url);
-		if (data.command == "/door_cafe" || data.command == "/t") {
-			open_door(0);
-			return [true, "Opening CAFE side door"];
-		} else if (data.command == "/door_smoke" || data.command == "/y") {
-			open_door(1);
-			return [true, "Opening SMOKE side door"];
-		} else if (data.command == "/door_sortir" || data.command == "/u") {
-			open_door(2);
-			return [true, "Opening SORTIR side door"];
+function process_request(data, IP, callback) {
+	access_allowed(data, function(result) {
+		if (result==2) {
+			log_opener("IP: " + IP + " user_id: " + data.user_id + "; parsed command: " + data.command + "; auth result: authorized; request.url: " + request.url);
+			if (data.command == "/door_cafe" || data.command == "/t") {
+				open_door(0);
+				callback([true, "Opening CAFE side door"]);
+			} else if (data.command == "/door_smoke" || data.command == "/y") {
+				open_door(1);
+				callback([true, "Opening SMOKE side door"]);
+			} else if (data.command == "/door_sortir" || data.command == "/u") {
+				open_door(2);
+				callback([true, "Opening SORTIR side door"]);
+			} else {
+				if (debug) { console.log("wrong command"); }
+				log_opener("IP: " + IP + " user_id: " + data.user_id + "; parsed command: " + data.command + "; auth result: authorized, wrong command; request.url: " + request.url);
+				callback([false, "wrong command"]);
+			}
+		} else if (result==1 && data.command == "/give_me_access_to_doors") {
+			add_user(data.user_id, data.user_name, callback);
 		} else {
-			if (debug) { console.log("wrong command"); }
-			log_opener("IP: " + IP + " user_id: " + data.user_id + "; parsed command: " + data.command + "; auth result: authorized, wrong command; request.url: " + request.url);
-			return [false, "wrong command"];
+			if (debug) { console.log("not authorized"); }
+			log_opener(data.user_id, data.command, "not authorized", IP);
+			callback([false, "not authorized"]);
 		}
-	} else if (data.token == ethalon_token && data.team_id == ethalon_team_id && data.command == "/give_me_access_to_doors") {
-		return add_user(data.user_id, data.user_name);
-	} else {
-		if (debug) { console.log("not authorized"); }
-		log_opener(data.user_id, data.command, "not authorized", IP);
-		return [false, "not authorized"];
-	}
+	});
 }
 
 function open_door(door_id) {
@@ -95,6 +99,7 @@ function open_door(door_id) {
 				console.log('Error on GPIO write 1: ', err.message);
 			}
 			console.log('Asking to open door #' + door_id);
+
 			setTimeout(function () {	
 				gpio.write(gpios[door_id], 0, function(err) {
 					if (err) { 
@@ -130,12 +135,13 @@ http.createServer(function (request, response) {
 			var obj = qs.parse(body);
 			if (debug) { console.log(obj); }
 			var IP = requestIp.getClientIp(request);
-			var processing_result = process_request(obj, IP);
-			if (processing_result[0]) {
-				response.end(processing_result[1]);
-			} else {
-				response.end(":pashak:");
-			}
+			process_request(obj, IP, function (result) {
+				if (result[0]) {
+					response.end(result[1]);
+				} else {
+					response.end(":pashak:");
+				}
+			});
 		});
 	} else {
 		response.end("nothing");
