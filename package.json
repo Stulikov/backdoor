@@ -1,8 +1,8 @@
 {
-  "name": "doorway",
-  "version": "1.0.0",
+  "name": "backdoor",
+  "version": "1.1.0",
   "description": "Test app to make a slackbot able to open office door.",
-  "main": "server.js",
+  "main": "gpio.js",
   "dependencies": {
     "forever": "^0.15.3",
     "node-localdb": "0.0.3",
@@ -12,20 +12,22 @@
     "serialport": "^6.0.3"
   },
   "devDependencies": {
-    "eslint-config-airbnb": "^16.1.0"
+    "eslint-config-airbnb": "^16.1.0",
+    "husky": "^0.14.3"
   },
   "scripts": {
+    "precommit": "eslint gpio.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node gpio.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Stulikov/doorway.git"
+    "url": "git+https://github.com/Stulikov/backdoor.git"
   },
   "author": "Alexey Stulikov",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Stulikov/doorway/issues"
+    "url": "https://github.com/Stulikov/backdoor/issues"
   },
-  "homepage": "https://github.com/Stulikov/doorway#readme"
+  "homepage": "https://github.com/Stulikov/backdoor#readme"
 }

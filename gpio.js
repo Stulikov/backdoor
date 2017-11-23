@@ -18,6 +18,16 @@ const gpiosReadyStates = [false, false, false];
 const logfile = '/home/pi/doorway/log.txt';
 const users = db('/home/pi/doorway/users.json');
 
+function logOpener(line) {
+  const time = (new Date()).toLocaleTimeString();
+  fs.appendFile(logfile, `${time} ${line}\n`, (err) => {
+    if (err) throw err;
+  });
+  if (debug) {
+    console.log(`${time}: ${line}`);
+  }
+}
+
 function initDoor(i) {
   gpio.setup(gpios[i], gpio.DIR_OUT, gpio.EDGE_NONE, () => {
     gpiosReadyStates[i] = true;
@@ -132,6 +142,28 @@ function userPermissions(params, dbCallback) {
   });
 }
 
+function openDoor(doorID) {
+  console.log('open door ', gpiosReadyStates, doorID);
+  if (gpiosReadyStates[doorID]) {
+    gpio.write(gpios[doorID], 1, (err) => {
+      if (err) {
+        console.log('Error on GPIO write 1: ', err.message);
+      }
+      console.log(`Asking to open door #${doorID}`);
+
+      setTimeout(() => {
+        gpio.write(gpios[doorID], 0, (e) => {
+          if (e) {
+            console.log('Error on GPIO write 0: ', err.message);
+          }
+        });
+      }, 200);
+    });
+  } else {
+    console.log(`GPIO port #${gpios[doorID]} isn't ready to operate.`);
+  }
+}
+
 function processRequest(data, IP, request, callback) {
   accessAllowed(data, (result) => {
     if (result >= 2) {
@@ -193,39 +225,6 @@ function processRequest(data, IP, request, callback) {
     }
   });
   console.log('', data);
-}
-
-function openDoor(doorID) {
-  console.log('open door ', gpiosReadyStates, doorID);
-  if (gpiosReadyStates[doorID]) {
-    gpio.write(gpios[doorID], 1, (err) => {
-      if (err) {
-        console.log('Error on GPIO write 1: ', err.message);
-      }
-      console.log(`Asking to open door #${doorID}`);
-
-      setTimeout(() => {
-        gpio.write(gpios[doorID], 0, (e) => {
-          if (e) {
-            console.log('Error on GPIO write 0: ', err.message);
-          }
-        });
-      }, 200);
-    });
-  } else {
-    console.log(`GPIO port #${gpios[doorID]} isn't ready to operate.`);
-  }
-}
-
-
-function logOpener(line) {
-  const time = (new Date()).toLocaleTimeString();
-  fs.appendFile(logfile, `${time} ${line}\n`, (err) => {
-    if (err) throw err;
-  });
-  if (debug) {
-    console.log(`${time}: ${line}`);
-  }
 }
 
 http.createServer((request, response) => {

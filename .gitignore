@@ -3,3 +3,4 @@ log
 *.hex
 log.txt
 users.json
+ansible/play.retry
