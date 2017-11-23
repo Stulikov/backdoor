@@ -11,7 +11,9 @@
     "rpi-gpio": "^0.9.1",
     "serialport": "^6.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint-config-airbnb": "^16.1.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
