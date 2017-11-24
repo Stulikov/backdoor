@@ -103,7 +103,7 @@ function listUsers(dbCallback) {
 }
 
 function userPermissions(params, dbCallback) {
-  const userID = params.user_id;
+  const { userID } = params;
   users.findOne({ userid: userID }).then((u) => {
     if (u) {
       let userName = u.username;
