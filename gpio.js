@@ -98,7 +98,7 @@ function listUsers() {
       const adminTxt = us[i].admin ? ' admin' : '';
       result += `${us[i].userid}: ${us[i].username}${accessTxt}${adminTxt}\n`;
     }
-    console.log(result);
+    if (debug) console.log('ListUsers result ', result);
     return [true, result];
   });
 }
@@ -190,6 +190,7 @@ async function processRequest(data, IP, request) {
     } else if (data.command === '/da_list_users') {
       if (result === 3) {
         response = await listUsers;
+        if (debug) console.log('In the middle result ', response);
       } else {
         response = [false, 'You are not admin, access denied.'];
       }
@@ -246,6 +247,7 @@ http.createServer((request, response) => {
       if (debug) { console.log(obj); }
       const IP = requestIp.getClientIp(request);
       const result = await processRequest(obj, IP, request);
+      if (debug) console.log('ProcessRequest result ', result);
       if (result[0]) {
         response.end(result[1]);
       } else {
