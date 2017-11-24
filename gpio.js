@@ -243,7 +243,7 @@ http.createServer((request, response) => {
         if (result[0]) {
           response.end(result[1]);
         } else {
-          response.end(':pashak:');
+          response.end(':pashak2:');
         }
       });
     });
