@@ -46,8 +46,10 @@ function gpioInit() {
 }
 gpioInit();
 
-function addUser(userID, userName, callback) {
-  users.findOne({ userid: userID }).then((u) => {
+function addUser(userID, userName) {
+  /* eslint-disable consistent-return */
+  return users.findOne({ userid: userID }).then((u) => {
+  /* eslint-enable consistent-return */
     if (u) {
       let accessTxt = '';
       if (u.access) { accessTxt = ', access allowed'; } else { accessTxt = ', access denied, ask boss to get an access.'; }
@@ -55,27 +57,26 @@ function addUser(userID, userName, callback) {
       let adminTxt = '';
       if (u.admin) { adminTxt = ', admin'; }
 
-      callback([false, `User already exist${accessTxt}${adminTxt}.`]);
-    } else {
-      users.insert({
-        userid: userID,
-        username: userName,
-        access: false,
-        admin: false,
-      }).then((au) => {
-        console.log(`Added user: ${au}`);
-        callback([true, `You added as ${au.username}`]);
-      });
+      return [false, `User already exist${accessTxt}${adminTxt}.`];
     }
+    users.insert({
+      userid: userID,
+      username: userName,
+      access: false,
+      admin: false,
+    }).then((au) => {
+      console.log(`Added user: ${au}`);
+      return [true, `You added as ${au.username}`];
+    });
   });
 }
 
-function accessAllowed(data, dbCallback) {
+function accessAllowed(data) {
   let result = 0;
   if (data.token === ethalonToken && data.team_id === ethalonTeamID) {
     result = 1;
   }
-  users.findOne({ userid: data.user_id }).then((u) => {
+  return users.findOne({ userid: data.user_id }).then((u) => {
     if (u) {
       if (u.access) {
         result = 2;
@@ -85,12 +86,12 @@ function accessAllowed(data, dbCallback) {
       }
     }
     console.log(result);
-    dbCallback(result);
+    return result;
   });
 }
 
-function listUsers(dbCallback) {
-  users.find({}).then((us) => {
+function listUsers() {
+  return users.find({}).then((us) => {
     let result = '';
     for (let i = 0; i < us.length; i += 1) {
       const accessTxt = us[i].access ? ' allowed' : ' disabled';
@@ -98,13 +99,15 @@ function listUsers(dbCallback) {
       result += `${us[i].userid}: ${us[i].username}${accessTxt}${adminTxt}\n`;
     }
     console.log(result);
-    dbCallback([true, result]);
+    return [true, result];
   });
 }
 
-function userPermissions(params, dbCallback) {
+function userPermissions(params) {
   const userID = params.user_id;
-  users.findOne({ userid: userID }).then((u) => {
+  /* eslint-disable consistent-return */
+  return users.findOne({ userid: userID }).then((u) => {
+  /* eslint-enable consistent-return */
     if (u) {
       let userName = u.username;
       if (typeof (params.user_name) !== 'undefined') {
@@ -135,11 +138,11 @@ function userPermissions(params, dbCallback) {
           if (accessTxt === '' && adminTxt === '') {
             adminTxt = ': nothing to change. Everything is up to date';
           }
-          dbCallback([true, `${userName + accessTxt + adminTxt}.`]);
+          return [true, `${userName + accessTxt + adminTxt}.`];
         });
       });
     } else {
-      dbCallback([true, "Such user doesn't exist."]);
+      return [true, "Such user doesn't exist."];
     }
   });
 }
@@ -166,67 +169,68 @@ function openDoor(doorID) {
   }
 }
 
-function processRequest(data, IP, request, callback) {
-  accessAllowed(data, (result) => {
-    if (result >= 2) {
-      logOpener(`IP: ${IP} user_id: ${data.user_id}; parsed command: ${data.command}; ` +
-                `auth result: authorized; request.url: ${request.url}`);
-      if (data.command === '/door_cafe' || data.command === '/t') {
-        openDoor(0);
-        callback([true, 'Opening CAFE side door']);
-      } else if (data.command === '/door_smoke' || data.command === '/y') {
-        openDoor(1);
-        callback([true, 'Opening SMOKE side door']);
-      } else if (data.command === '/door_sortir' || data.command === '/u') {
-        openDoor(2);
-        callback([true, 'Opening SORTIR side door']);
-      } else if (data.command === '/door_update_my_name') {
-        userPermissions({ userID: data.user_id, userName: data.user_name }, callback);
-      } else if (data.command === '/da_list_users') {
-        if (result === 3) {
-          listUsers(callback);
-        } else {
-          callback([false, 'You are not admin, access denied.']);
-        }
-      } else if (data.command === '/da_grant_permissions') {
-        if (result === 3) {
-          userPermissions({ userID: data.text, access: true }, callback);
-        } else {
-          callback([false, 'You are not admin, access denied.']);
-        }
-      } else if (data.command === '/da_revoke_permissions') {
-        if (result === 3) {
-          userPermissions({ userID: data.text, access: false }, callback);
-        } else {
-          callback([false, 'You are not admin, access denied.']);
-        }
-      } else if (data.command === '/da_make_admin') {
-        if (result === 3) {
-          userPermissions({ userID: data.text, admin: true }, callback);
-        } else {
-          callback([false, 'You are not admin, access denied.']);
-        }
-      } else if (data.command === '/da_disrank_admin') {
-        if (result === 3) {
-          userPermissions({ userID: data.text, admin: false }, callback);
-        } else {
-          callback([false, 'You are not admin, access denied.']);
-        }
-      } else {
-        if (debug) { console.log('wrong command'); }
-        logOpener(`IP: ${IP} user_id: ${data.user_id}; parsed command: ${data.command}; ` +
-                  `auth result: authorized, wrong command; request.url: ${request.url}`);
-        callback([false, 'wrong command']);
-      }
-    } else if (result === 1 && data.command === '/door_give_me_access') {
-      addUser(data.user_id, data.user_name, callback);
-    } else {
-      if (debug) { console.log('not authorized'); }
-      logOpener(data.user_id, data.command, 'not authorized', IP);
-      callback([false, 'not authorized']);
-    }
-  });
+async function processRequest(data, IP, request) {
   console.log('', data);
+  const result = await accessAllowed(data);
+  let response = [false, 'Unknown params'];
+  if (result >= 2) {
+    logOpener(`IP: ${IP} user_id: ${data.user_id}; parsed command: ${data.command}; ` +
+              `auth result: authorized; request.url: ${request.url}`);
+    if (data.command === '/door_cafe' || data.command === '/t') {
+      openDoor(0);
+      response = [true, 'Opening CAFE side door'];
+    } else if (data.command === '/door_smoke' || data.command === '/y') {
+      openDoor(1);
+      response = [true, 'Opening SMOKE side door'];
+    } else if (data.command === '/door_sortir' || data.command === '/u') {
+      openDoor(2);
+      response = [true, 'Opening SORTIR side door'];
+    } else if (data.command === '/door_update_my_name') {
+      response = await userPermissions({ userID: data.user_id, userName: data.user_name });
+    } else if (data.command === '/da_list_users') {
+      if (result === 3) {
+        response = await listUsers;
+      } else {
+        response = [false, 'You are not admin, access denied.'];
+      }
+    } else if (data.command === '/da_grant_permissions') {
+      if (result === 3) {
+        response = await userPermissions({ userID: data.text, access: true });
+      } else {
+        response = [false, 'You are not admin, access denied.'];
+      }
+    } else if (data.command === '/da_revoke_permissions') {
+      if (result === 3) {
+        response = await userPermissions({ userID: data.text, access: false });
+      } else {
+        response = [false, 'You are not admin, access denied.'];
+      }
+    } else if (data.command === '/da_make_admin') {
+      if (result === 3) {
+        response = await userPermissions({ userID: data.text, admin: true });
+      } else {
+        response = [false, 'You are not admin, access denied.'];
+      }
+    } else if (data.command === '/da_disrank_admin') {
+      if (result === 3) {
+        response = await userPermissions({ userID: data.text, admin: false });
+      } else {
+        response = [false, 'You are not admin, access denied.'];
+      }
+    } else {
+      if (debug) { console.log('wrong command'); }
+      logOpener(`IP: ${IP} user_id: ${data.user_id}; parsed command: ${data.command}; ` +
+                `auth result: authorized, wrong command; request.url: ${request.url}`);
+      response = [false, 'wrong command'];
+    }
+  } else if (result === 1 && data.command === '/door_give_me_access') {
+    response = await addUser(data.user_id, data.user_name);
+  } else {
+    if (debug) { console.log('not authorized'); }
+    logOpener(data.user_id, data.command, 'not authorized', IP);
+    response = [false, 'not authorized'];
+  }
+  return response;
 }
 
 http.createServer((request, response) => {
@@ -237,17 +241,16 @@ http.createServer((request, response) => {
     request.on('data', (data) => {
       body += data;
     });
-    request.on('end', () => {
+    request.on('end', async () => {
       const obj = qs.parse(body);
       if (debug) { console.log(obj); }
       const IP = requestIp.getClientIp(request);
-      processRequest(obj, IP, request, (result) => {
-        if (result[0]) {
-          response.end(result[1]);
-        } else {
-          response.end(':pashak2:');
-        }
-      });
+      const result = await processRequest(obj, IP, request);
+      if (result[0]) {
+        response.end(result[1]);
+      } else {
+        response.end(':pashak2:');
+      }
     });
   } else {
     response.end('nothing');
