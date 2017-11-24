@@ -1,9 +1,19 @@
 {
-  "extends": "airbnb",
+  "extends": "airbnb-base",
   "env": {
     "node": true
   },
   "rules": {
-    "no-console": "off"
+    "no-console": "off",
+    "prefer-destructuring": ["warn", {
+      "AssignmentExpression": {
+        "array": false,
+        "object": false
+      },
+      "VariableDeclarator": {
+        "array": true,
+        "object": true
+      }
+    }]
   }
 }

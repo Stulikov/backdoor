@@ -110,17 +110,19 @@ function userPermissions(params, dbCallback) {
       if (typeof (params.user_name) !== 'undefined') {
         userName = params.user_name;
       }
-      let access = u.access;
+      let { access } = u;
       if (typeof (params.access) !== 'undefined') {
         access = params.access;
       }
-      let admin = u.admin;
+      let { admin } = u;
       if (typeof (params.admin) !== 'undefined') {
         admin = params.admin;
       }
 
       users.remove({ userid: userID }).then(() => {
-        users.insert({ userid: userID, username: userName, access, admin }).then((au) => {
+        users.insert({
+          userid: userID, username: userName, access, admin,
+        }).then((au) => {
           console.log('User was changed: ', au);
           let accessTxt = '';
           if (access !== u.access) {
